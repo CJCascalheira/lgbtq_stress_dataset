@@ -1,0 +1,9 @@
+Directory structure of the data folder.
+
+data/
+....raw/
+.......combined/
+.......initial_extraction/
+.......tagtog/
+.............ann.json/
+.............plain.html/
