@@ -3,7 +3,9 @@
 # -----------------------------------------------------
 
 data/raw/**
+data/util/**
 data/cleaned/version_1/**
+data/cleaned/version_2/**
 data/cleaned/liwc_features/**
 
 # -----------------------------------------------------
