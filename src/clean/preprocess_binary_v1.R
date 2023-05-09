@@ -7,6 +7,9 @@
 # engineering and modeling. It focuses on the data where post-level coding
 # was performed and then transformed into a binary outcome. 
 
+# The Version 1 datasets are primarily used for features that process all
+# linguistic features, such as word embeddings and LIWC.
+
 # LOAD LIBRARIES AND IMPORT DATA ------------------------------------------
 
 # Load dependencies
@@ -32,11 +35,19 @@ missom_full <- left_join(tagtog_full, original_reddit) %>%
 # SPLIT THE DATA ----------------------------------------------------------
 
 # Select the posts coded by the team
-missom_coded <- na.omit(missom_full)
+missom_coded <- na.omit(missom_full) %>%
+  # Add the annotation strategy
+  mutate(how_annotated = "human") %>%
+  # Reorder variables
+  select(tagtog_file_id, post_id, how_annotated, subreddit, text, everything())
 
 # Select the posts not coded
 missom_not_coded <- missom_full %>%
-  filter(!(post_id %in% missom_coded$post_id))
+  filter(!(post_id %in% missom_coded$post_id)) %>%
+  # Add the annotation strategy
+  mutate(how_annotated = "machine") %>%
+  # Reorder variables
+  select(tagtog_file_id, post_id, how_annotated, subreddit, text, everything())
 
 # DOUBLE CHECK CODING OF MINORITY STRESS ----------------------------------
 

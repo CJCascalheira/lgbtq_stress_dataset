@@ -3,6 +3,7 @@ Directory structure of the data folder.
 data/
 ....cleaned/
 ........version_1/
+........version_2/
 ........liwc_features/
 ....raw/
 ........combined/
@@ -10,3 +11,4 @@ data/
 ........tagtog/
 ............ann.json/
 ............plain.html/
+....util/
