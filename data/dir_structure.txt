@@ -4,7 +4,9 @@ data/
 ....cleaned/
 ........version_1/
 ........version_2/
-........liwc_features/
+........features/
+............liwc_features/
+....hatespeech/
 ....raw/
 ........combined/
 ........initial_extraction/
