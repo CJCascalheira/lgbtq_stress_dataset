@@ -13,6 +13,7 @@
 library(textstem)
 library(tidyverse)
 library(tidytext)
+library(pdftools)
 
 # Import data files
 missom_coded <- read_csv("data/cleaned/version_2/missom_coded_v2.csv")
@@ -48,6 +49,12 @@ hate_lexicon_gender_minority <- read_csv("data/hatespeech/hate_lexicon_gender_mi
 hatebase_woman_man <- read_csv("data/hatespeech/hatebase_woman_man.csv") %>%
   select(word) %>%
   mutate(hatebase_woman_man = 1)
+
+# Import theoretical lexicon of minority stress text
+minority_stress_2003 <- read_file("data/util/minority_stress_text/minority_stress_2003.txt")
+minority_stress_ethnicity <- read_file("data/util/minority_stress_text/minority_stress_ethnicity.txt")
+minority_stress_1995 <- pdf_text("data/util/minority_stress_text/minority_stress_1995.pdf")
+minority_stress_transgender <- pdf_text("data/util/minority_stress_text/minority_stress_transgender.pdf")
 
 # 1) CLINICAL KEYWORDS ----------------------------------------------------
 
@@ -230,7 +237,9 @@ missom_not_coded <- missom_not_coded %>%
                                                           ignore_case = TRUE)), 1, 0)
   )
 
-# 2) SENTIMENT LEXICON ----------------------------------------------------
+# 2) LEXICONS -------------------------------------------------------------
+
+# ...2a) SENTIMENT LEXICON ------------------------------------------------
 
 # For the coded dataset
 missom_coded <- missom_coded %>%
@@ -270,7 +279,7 @@ missom_not_coded <- missom_not_coded %>%
   # Rearrange the variables
   select(tagtog_file_id, post_id, how_annotated:label_minority_stress_new, everything())
 
-# 3) HATE SPEECH LEXICONS -------------------------------------------------
+# ...2b) HATE SPEECH LEXICONS ----------------------------------------------
 
 # Human coded dataset
 missom_coded <- missom_coded %>%
@@ -335,6 +344,161 @@ missom_not_coded <- missom_not_coded %>%
   left_join(missom_not_coded) %>%
   # Rearrange the variables
   select(tagtog_file_id, post_id, how_annotated:label_minority_stress_new, everything())
+
+# ...2c) THEORETICAL MINORITY STRESS LEXICON ------------------------------
+
+# ......2c1) PREPARE THE DATA ---------------------------------------------
+
+# Common terms to filter
+ms_common_terms <- c("measure", "event", "association", "gay", "journal", "york", "study", "sample", "relate", "table", "aid", "subject", "american", "effect", "social", "google", "scholar", "lgb", "pubmed", "lesbian", "bisexual", "prevalence", "research", "al", "individual", "people", "process", "person", "pp", "editor", "suicide", "lgbt", "lgbtpoc", "participant", "item", "sexual", "experience", "scale", "subscale", "white", "trans", "gender", "transgender")
+
+# Meyer (1995) - early version of minority stress
+minority_stress_1995_df <- data.frame(article = minority_stress_1995) %>% 
+  as_tibble() %>%
+  mutate(
+    # Remove punctuation and digits
+    article = str_remove_all(article, regex("[:punct:]|[:digit:]", ignore_case = TRUE)),
+    # Remove white space character
+    article = str_replace_all(article, regex("\n"), " "),
+    # Remove padding
+    article = str_trim(article),
+    article = str_squish(article),
+    # Covert to lowercase
+    article = tolower(article)
+  ) %>%
+  # Extract single words
+  unnest_tokens(output = "word", input = "article") %>%
+  # Remove stop words
+  filter(!(word %in% stop_words$word)) %>%
+  # Lemmatize the words
+  mutate(word = lemmatize_words(word)) %>%
+  # Top words in the DSM-5
+  count(word) %>%
+  arrange(desc(n)) %>%
+  # Filter out common words
+  filter(!(word %in% ms_common_terms)) %>%
+  # Get the top unique words related to minority stress
+  head(n = 13) %>%
+  select(-n) %>%
+  # Add other permutations and combinations of the top key words for the NLP search
+  bind_rows(data.frame(word = c("minority stress", "homophobic", "violent", 
+                                "mental health")))
+minority_stress_1995_df
+
+# Meyer (2003) - most popular version of minority stress
+minority_stress_2003_df <- data.frame(article = minority_stress_2003) %>% 
+  as_tibble() %>%
+  mutate(
+    # Remove punctuation and digits
+    article = str_remove_all(article, regex("[:punct:]|[:digit:]", ignore_case = TRUE)),
+    # Remove white space character
+    article = str_replace_all(article, regex("\n"), " "),
+    # Remove padding
+    article = str_trim(article),
+    article = str_squish(article),
+    # Covert to lowercase
+    article = tolower(article)
+  ) %>%
+  # Extract single words
+  unnest_tokens(output = "word", input = "article") %>%
+  # Remove stop words
+  filter(!(word %in% stop_words$word)) %>%
+  # Lemmatize the words
+  mutate(word = lemmatize_words(word)) %>%
+  # Top words in the DSM-5
+  count(word) %>%
+  arrange(desc(n)) %>%
+  # Filter out common words
+  filter(!(word %in% ms_common_terms)) %>%
+  # Get the top unique words related to minority stress
+  head(n = 13) %>%
+  select(-n) %>%
+  # Add other permutations and combinations of the top key words for the NLP search
+  bind_rows(data.frame(word = c("mental disorder")))
+minority_stress_2003_df
+
+# Balsam et al (2011) - minority stress adapted for ethnic minority LGBTQ+ folx
+minority_stress_ethnicity_df <- data.frame(article = minority_stress_ethnicity) %>% 
+  as_tibble() %>%
+  mutate(
+    # Remove punctuation and digits
+    article = str_remove_all(article, regex("[:punct:]|[:digit:]", ignore_case = TRUE)),
+    # Remove white space character
+    article = str_replace_all(article, regex("\n"), " "),
+    # Remove padding
+    article = str_trim(article),
+    article = str_squish(article),
+    # Covert to lowercase
+    article = tolower(article)
+  ) %>%
+  # Extract single words
+  unnest_tokens(output = "word", input = "article") %>%
+  # Remove stop words
+  filter(!(word %in% stop_words$word)) %>%
+  # Lemmatize the words
+  mutate(word = lemmatize_words(word)) %>%
+  # Top words in the DSM-5
+  count(word) %>%
+  arrange(desc(n)) %>%
+  # Filter out common words
+  filter(!(word %in% ms_common_terms)) %>%
+  # Get the top unique words related to minority stress
+  head(n = 11) %>%
+  select(-n) %>%
+  # Add other permutations and combinations of the top key words for the NLP search
+  bind_rows(data.frame(word = c("racial", "ethnic")))
+minority_stress_ethnicity_df
+
+# Hendricks & Testa (2012) - minority stress adaoted for transgender folx
+minority_stress_transgender_df <- data.frame(article = minority_stress_transgender) %>% 
+  as_tibble() %>%
+  mutate(
+    # Remove punctuation and digits
+    article = str_remove_all(article, regex("[:punct:]|[:digit:]", ignore_case = TRUE)),
+    # Remove white space character
+    article = str_replace_all(article, regex("\n"), " "),
+    # Remove padding
+    article = str_trim(article),
+    article = str_squish(article),
+    # Covert to lowercase
+    article = tolower(article)
+  ) %>%
+  # Extract single words
+  unnest_tokens(output = "word", input = "article") %>%
+  # Remove stop words
+  filter(!(word %in% stop_words$word)) %>%
+  # Lemmatize the words
+  mutate(word = lemmatize_words(word)) %>%
+  # Top words in the DSM-5
+  count(word) %>%
+  arrange(desc(n)) %>%
+  # Filter out common words
+  filter(!(word %in% ms_common_terms)) %>%
+  # Get the top unique words related to minority stress
+  head(n = 4) %>%
+  select(-n)
+minority_stress_transgender_df
+
+# Bind all dfs
+minority_stress_df <- bind_rows(minority_stress_1995_df, minority_stress_2003_df) %>%
+  bind_rows(minority_stress_ethnicity_df) %>%
+  bind_rows(minority_stress_transgender_df) %>%
+  # Remove repeats
+  distinct(word)
+
+# ......2c2) GENERATE THE FEATURES ----------------------------------------
+
+# For coded data
+missom_coded <- missom_coded %>%
+  mutate(
+    theoretical_minority_stress = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0),
+  )
+
+# For not coded data
+missom_not_coded <- missom_not_coded %>%
+  mutate(
+    theoretical_minority_stress = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0),
+  )
 
 # 4) OPEN VOCABULARY ------------------------------------------------------
 
@@ -532,8 +696,7 @@ for (i in 1:length(trigram_vector)) {
   missom_not_coded[[ngram]] <- as.integer(x)  
 }
 
-# ...4b) TOPIC MODELS -----------------------------------------------------
-
+# 5) ADD LIWC FEATURES ----------------------------------------------------
 
 # EXPORT ------------------------------------------------------------------
 
