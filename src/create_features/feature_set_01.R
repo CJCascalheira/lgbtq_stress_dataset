@@ -46,15 +46,28 @@ hate_lexicon_gender_minority <- read_csv("data/hatespeech/hate_lexicon_gender_mi
   select(word) %>%
   mutate(hate_lexicon_gender_minority = 1)
 
-hatebase_woman_man <- read_csv("data/hatespeech/hatebase_woman_man.csv") %>%
+hate_lexicon_woman_man <- read_csv("data/hatespeech/hatebase_woman_man.csv") %>%
   select(word) %>%
-  mutate(hatebase_woman_man = 1)
+  mutate(hate_lexicon_woman_man = 1)
 
 # Import theoretical lexicon of minority stress text
 minority_stress_2003 <- read_file("data/util/minority_stress_text/minority_stress_2003.txt")
+
 minority_stress_ethnicity <- read_file("data/util/minority_stress_text/minority_stress_ethnicity.txt")
+
 minority_stress_1995 <- pdf_text("data/util/minority_stress_text/minority_stress_1995.pdf")
+
 minority_stress_transgender <- pdf_text("data/util/minority_stress_text/minority_stress_transgender.pdf")
+
+# Import pain lexicon
+pain_lexicon <- read_csv("data/util/pain_lexicon.csv")
+
+# Import LIWC
+missom_coded_liwc <- read_csv("data/cleaned/features/liwc_features/missom_coded_v1_liwc.csv") %>%
+  select(-text)
+
+missom_not_coded_liwc <- read_csv("data/cleaned/features/liwc_features/missom_not_coded_v1_liwc.csv") %>%
+  select(-text)
 
 # 1) CLINICAL KEYWORDS ----------------------------------------------------
 
@@ -254,7 +267,7 @@ missom_coded <- missom_coded %>%
   # Group by post
   group_by(post_id) %>%
   # Calculate total sentiment of post
-  summarize(sentiment_valence = sum(value)) %>%
+  summarize(sentiment_lexicon = sum(value)) %>%
   # Join to main dataframe
   left_join(missom_coded) %>%
   # Rearrange the variables
@@ -273,7 +286,7 @@ missom_not_coded <- missom_not_coded %>%
   # Group by post
   group_by(post_id) %>%
   # Calculate total sentiment of post
-  summarize(sentiment_valence = sum(value)) %>%
+  summarize(sentiment_lexicon = sum(value)) %>%
   # Join to main dataframe
   left_join(missom_not_coded) %>%
   # Rearrange the variables
@@ -290,15 +303,15 @@ missom_coded <- missom_coded %>%
   # Join the hate speech data frames
   left_join(hate_lexicon_sexual_minority) %>%
   left_join(hate_lexicon_gender_minority) %>%
-  left_join(hatebase_woman_man) %>%
+  left_join(hate_lexicon_woman_man) %>%
   # Recode missing to 0
   mutate(
     hate_lexicon_sexual_minority = if_else(is.na(hate_lexicon_sexual_minority), 0,
                                            hate_lexicon_sexual_minority),
     hate_lexicon_gender_minority = if_else(is.na(hate_lexicon_gender_minority), 0,
                                            hate_lexicon_gender_minority),
-    hatebase_woman_man = if_else(is.na(hatebase_woman_man), 0,
-                                 hatebase_woman_man)
+    hate_lexicon_woman_man = if_else(is.na(hate_lexicon_woman_man), 0,
+                                 hate_lexicon_woman_man)
   ) %>%
   # Group by post
   group_by(post_id) %>%
@@ -306,7 +319,7 @@ missom_coded <- missom_coded %>%
   summarize(
     hate_lexicon_sexual_minority = sum(hate_lexicon_sexual_minority),
     hate_lexicon_gender_minority = sum(hate_lexicon_gender_minority),
-    hatebase_woman_man = sum(hatebase_woman_man)
+    hate_lexicon_woman_man = sum(hate_lexicon_woman_man)
   ) %>%
   # Join to main dataframe
   left_join(missom_coded) %>%
@@ -322,15 +335,15 @@ missom_not_coded <- missom_not_coded %>%
   # Join the hate speech data frames
   left_join(hate_lexicon_sexual_minority) %>%
   left_join(hate_lexicon_gender_minority) %>%
-  left_join(hatebase_woman_man) %>%
+  left_join(hate_lexicon_woman_man) %>%
   # Recode missing to 0
   mutate(
     hate_lexicon_sexual_minority = if_else(is.na(hate_lexicon_sexual_minority), 0,
                                            hate_lexicon_sexual_minority),
     hate_lexicon_gender_minority = if_else(is.na(hate_lexicon_gender_minority), 0,
                                            hate_lexicon_gender_minority),
-    hatebase_woman_man = if_else(is.na(hatebase_woman_man), 0,
-                                 hatebase_woman_man)
+    hate_lexicon_woman_man = if_else(is.na(hate_lexicon_woman_man), 0,
+                                 hate_lexicon_woman_man)
   ) %>%
   # Group by post
   group_by(post_id) %>%
@@ -338,7 +351,7 @@ missom_not_coded <- missom_not_coded %>%
   summarize(
     hate_lexicon_sexual_minority = sum(hate_lexicon_sexual_minority),
     hate_lexicon_gender_minority = sum(hate_lexicon_gender_minority),
-    hatebase_woman_man = sum(hatebase_woman_man)
+    hate_lexicon_woman_man = sum(hate_lexicon_woman_man)
   ) %>%
   # Join to main dataframe
   left_join(missom_not_coded) %>%
@@ -491,13 +504,29 @@ minority_stress_df <- bind_rows(minority_stress_1995_df, minority_stress_2003_df
 # For coded data
 missom_coded <- missom_coded %>%
   mutate(
-    theoretical_minority_stress = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0),
+    theoretical_ms_lexicon = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0)
   )
 
 # For not coded data
 missom_not_coded <- missom_not_coded %>%
   mutate(
-    theoretical_minority_stress = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0),
+    theoretical_ms_lexicon = if_else(str_detect(text, regex(paste(minority_stress_df$word, collapse = "|"), ignore_case = TRUE)), 1, 0)
+  )
+
+# ...2d) PAIN LEXICON -----------------------------------------------------
+
+# Add pain terms to coded data
+missom_coded <- missom_coded %>%
+  mutate(
+    pain_lexicon = if_else(str_detect(text, regex(paste(pain_lexicon$keywords, collapse = "|"),
+                                                  ignore_case = TRUE)), 1, 0)
+  )
+
+# Add pain terms to not coded data
+missom_not_coded <- missom_not_coded %>%
+  mutate(
+    pain_lexicon = if_else(str_detect(text, regex(paste(pain_lexicon$keywords, collapse = "|"),
+                                                  ignore_case = TRUE)), 1, 0)
   )
 
 # 4) OPEN VOCABULARY ------------------------------------------------------
@@ -697,6 +726,14 @@ for (i in 1:length(trigram_vector)) {
 }
 
 # 5) ADD LIWC FEATURES ----------------------------------------------------
+
+# Coded dataset
+missom_coded <- left_join(missom_coded, missom_coded_liwc, 
+                          by = c("tagtog_file_id", "post_id"))
+
+# Not coded dataset
+missom_not_coded <- left_join(missom_not_coded, missom_not_coded_liwc, 
+                              by = c("tagtog_file_id", "post_id"))
 
 # EXPORT ------------------------------------------------------------------
 
