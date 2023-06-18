@@ -9,6 +9,7 @@ data/cleaned/version_2/**
 data/cleaned/features/**
 data/hatespeech/**
 data/pulled_subsets/**
+results/plots/**
 
 # -----------------------------------------------------
 # R files
