@@ -3,9 +3,7 @@
 # Author = Cory J. Cascalheira
 # Date = 05/09/2023
 
-# The purpose of this script is to create the following features:
-# - clinical keywords
-# - sentiment lexicons
+# The purpose of this script is to create features for the LGBTQ+ MiSSoM dataset.
 
 # LOAD LIBRARIES AND IMPORT DATA ------------------------------------------
 
