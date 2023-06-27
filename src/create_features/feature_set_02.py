@@ -29,7 +29,6 @@ import time
 # Load plotting tools
 import pyLDAvis.gensim_models
 import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Import tool for regular expressions
 import re
@@ -55,9 +54,6 @@ import gensim.downloader as api
 import importlib_metadata
 import spacy
 nlp = spacy.load('en_core_web_sm', disable=['parser', 'ner'])
-
-# Load GSDMM - topic modeling for short texts (i.e., social media)
-from gsdmm import MovieGroupProcess
 
 # Set file path
 my_path = os.getcwd()
@@ -393,28 +389,6 @@ def get_optimal_lda(dictionary, corpus, limit=30, start=2, step=2):
 
     return model_list, coherence_values, perplexity_values
 
-
-def top_words(cluster_word_distribution, top_cluster, values):
-    """
-    Print the top words associated with the GSDMM topic modeling algorithm.
-
-    Parameters
-    ----------
-    cluster_word_distribution: a GSDMM word distribution
-    top_cluster: a list of indices
-    values: an integer
-    """
-
-    # For each cluster
-    for cluster in top_cluster:
-
-        # Sort the words associated with each topic
-        sort_dicts = sorted(cluster_word_distribution[cluster].items(), key=lambda k: k[1], reverse=True)[:values]
-
-        # Print the results to the screen
-        print('Cluster %s : %s' % (cluster, sort_dicts))
-        print('-' * 120)
-
 # PREPROCESS THE TEXT --------------------------------------------------------------------
 
 # Select the columns
@@ -590,200 +564,5 @@ missom_not_coded2 = missom_full[missom_full['how_annotated'] == 'machine']
 # Export
 missom_coded2.to_csv(my_path + '/data/cleaned/features/missom_coded_feat02b.csv')
 missom_not_coded2.to_csv(my_path + '/data/cleaned/features/missom_not_coded_feat02b.csv')
-
-# EXECUTE THE TOPIC MODELS WITH GSDMM --------------------------------------------------------
-
-# Get the number of words per post
-words_per_post = []
-
-for i in range(len(missom_words_cleaned)):
-    words_per_post.append(len(missom_words_cleaned[i]))
-
-# Histogram of words per post
-plt.hist(x=words_per_post)
-plt.show()
-
-# Descriptive statistic of words per post
-print(np.mean(words_per_post))
-print(np.std(words_per_post))
-print(len([num for num in words_per_post if num <= 50]) / len(words_per_post))
-
-# GSDMM ALGORITHM
-
-# Create the vocabulary
-vocab = set(x for doc in missom_words_cleaned for x in doc)
-
-# The number of terms in the vocabulary
-n_terms = len(vocab)
-
-# Train the GSDMM models, changing the value of beta given its meaning (i.e., how similar topics need to be to cluster
-# together). K is 30, the same number of topic to consider as the above vanilla LDA. Alpha remains 0.1, which reduces
-# the probability that a post will join an empty cluster
-
-# Train the GSDMM model, beta = 1.0
-mgp_10 = MovieGroupProcess(K=30, alpha=0.1, beta=1.0, n_iters=40)
-gsdmm_b10 = mgp_10.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_10 = np.array(mgp_10.cluster_doc_count)
-print('Beta = 1.0. The number of posts per topic: ', post_count_10)
-
-# Train the GSDMM model, beta = 0.9
-mgp_09 = MovieGroupProcess(K=30, alpha=0.1, beta=0.9, n_iters=40)
-gsdmm_b09 = mgp_09.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_09 = np.array(mgp_09.cluster_doc_count)
-print('Beta = 0.9. The number of posts per topic: ', post_count_09)
-
-# Train the GSDMM model, beta = 0.8
-mgp_08 = MovieGroupProcess(K=30, alpha=0.1, beta=0.8, n_iters=40)
-gsdmm_b08 = mgp_08.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_08 = np.array(mgp_08.cluster_doc_count)
-print('Beta = 0.8. The number of posts per topic: ', post_count_08)
-
-# Train the GSDMM model, beta = 0.7
-mgp_07 = MovieGroupProcess(K=30, alpha=0.1, beta=0.7, n_iters=40)
-gsdmm_b07 = mgp_07.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_07 = np.array(mgp_07.cluster_doc_count)
-print('Beta = 0.7. The number of posts per topic: ', post_count_07)
-
-# Train the GSDMM model, beta = 0.6
-mgp_06 = MovieGroupProcess(K=30, alpha=0.1, beta=0.6, n_iters=40)
-gsdmm_b06 = mgp_06.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_06 = np.array(mgp_06.cluster_doc_count)
-print('Beta = 0.6. The number of posts per topic: ', post_count_06)
-
-# Train the GSDMM model, beta = 0.5
-mgp_05 = MovieGroupProcess(K=30, alpha=0.1, beta=0.5, n_iters=40)
-gsdmm_b05 = mgp_05.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_05 = np.array(mgp_05.cluster_doc_count)
-print('Beta = 0.5. The number of posts per topic: ', post_count_05)
-
-# Train the GSDMM model, beta = 0.4
-mgp_04 = MovieGroupProcess(K=30, alpha=0.1, beta=0.4, n_iters=40)
-gsdmm_b04 = mgp_04.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_04 = np.array(mgp_04.cluster_doc_count)
-print('Beta = 0.4. The number of posts per topic: ', post_count_04)
-
-# Train the GSDMM model, beta = 0.3
-start_time = time.time()
-mgp_03 = MovieGroupProcess(K=30, alpha=0.1, beta=0.3, n_iters=40)
-gsdmm_b03 = mgp_03.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_03 = np.array(mgp_03.cluster_doc_count)
-print('Beta = 0.3. The number of posts per topic: ', post_count_03)
-end_time = time.time()
-processing_time = end_time - start_time
-print(processing_time / 60)
-
-# Train the GSDMM model, beta = 0.2
-mgp_02 = MovieGroupProcess(K=30, alpha=0.1, beta=0.2, n_iters=40)
-gsdmm_b02 = mgp_02.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_02 = np.array(mgp_02.cluster_doc_count)
-print('Beta = 0.2. The number of posts per topic: ', post_count_02)
-
-# Train the GSDMM model, beta = 0.1
-mgp_01 = MovieGroupProcess(K=30, alpha=0.1, beta=0.1, n_iters=40)
-gsdmm_b01 = mgp_01.fit(docs=missom_words_cleaned, vocab_size=n_terms)
-post_count_01 = np.array(mgp_01.cluster_doc_count)
-print('Beta = 0.1. The number of posts per topic: ', post_count_01)
-
-# Remove topics with 0 posts assigned
-beta_01 = [x for x in post_count_01 if x > 0]
-beta_02 = [x for x in post_count_02 if x > 0]
-beta_03 = [x for x in post_count_03 if x > 0]
-beta_04 = [x for x in post_count_04 if x > 0]
-beta_05 = [x for x in post_count_05 if x > 0]
-beta_06 = [x for x in post_count_06 if x > 0]
-beta_07 = [x for x in post_count_07 if x > 0]
-beta_08 = [x for x in post_count_08 if x > 0]
-beta_09 = [x for x in post_count_09 if x > 0]
-beta_10 = [x for x in post_count_10 if x > 0]
-
-# Make lists the same size, transform in array
-beta_01 = np.sort(np.array(beta_01))
-beta_02 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_02)]), beta_02))
-beta_03 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_03)]), beta_03))
-beta_04 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_04)]), beta_04))
-beta_05 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_05)]), beta_05))
-beta_06 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_06)]), beta_06))
-beta_07 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_07)]), beta_07))
-beta_08 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_08)]), beta_08))
-beta_09 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_09)]), beta_09))
-beta_10 = np.sort(np.append(np.repeat(0, [len(beta_01)-len(beta_10)]), beta_10))
-
-# Append all topics
-n_posts = np.append(beta_01, [beta_02, beta_03, beta_04, beta_05, beta_06, beta_07, beta_08, beta_09, beta_10])
-
-# Create list of topic numbers
-topic_numbers = [17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1] * 10
-
-# Create a list of beta values
-beta_list = [[0.1] * 17] + [[0.2] * 17] + [[0.3] * 17] + [[0.4] * 17] + [[0.5] * 17] + [[0.6] * 17] + [[0.7] * 17] + [[0.8] * 17] + [[0.9] * 17] + [[1.0] * 17]
-beta_values = [item for sublist in beta_list for item in sublist]
-
-# Double check that the betas are same length as topic numbers
-print(len(topic_numbers) == len(n_posts) == len(beta_values))
-
-# Create data frame for plotting
-list_of_tuples = list(zip(beta_values, topic_numbers, n_posts))
-gsdmm_df = pd.DataFrame(list_of_tuples, columns=['beta', 'topic_numbers', 'n_posts'])
-
-# Make grid plot
-sns.set_theme(style="white")
-gsdmm_plot = sns.FacetGrid(gsdmm_df, col='beta', col_wrap=2)
-gsdmm_plot.map(sns.barplot, 'topic_numbers', 'n_posts', color='cornflowerblue')
-gsdmm_plot.set_axis_labels("Topic Numbers", "Number of Posts")
-gsdmm_plot.savefig('results/plots/gsdmm_topics.png')
-
-# Optimal number of topics?
-print('The optimal number of topics in GSDMM, based on average, is: ', (6 + 4 + 3 + 4 + 2 + 2 + 1 + 2 + 2 + 1) / 10)
-
-# Since optimal number of plots is GSDMM is 2.7, round to 3---use model where beta = 0.3
-
-# Rearrange the topics in order of importance
-top_index = post_count_03.argsort()[-17:][::-1]
-
-# Get the top 15 words per topic
-top_words(mgp_03.cluster_word_distribution, top_cluster=top_index, values=15)
-
-# Initialize empty list
-gsdmm_topics = []
-
-# Predict the topic for each set of words in a Reddit post
-for i in range(len(missom_words_cleaned)):
-    gsdmm_topics.append(mgp_03.choose_best_label(missom_words_cleaned[i]))
-
-# Initialize empty lists
-topic_classes = []
-topic_probs = []
-
-# For each post, extract the dominant topic from the topic distribution
-for i in range(len(missom_text_original)):
-
-    # Extract the dominant topic
-    topic_class = gsdmm_topics[i][0]
-    topic_classes.append(topic_class)
-
-    # Extract the probability of the dominant topic
-    topic_prob = gsdmm_topics[i][1]
-    topic_probs.append(topic_prob)
-
-# Prepare to merge with original dataframe
-gsdmm_missom_df = missom_full.loc[:, ['author', 'body', 'permalink']]
-
-# Add the dominant topics and strengths
-gsdmm_missom_df['topic'] = topic_classes
-gsdmm_missom_df['topic_probability'] = topic_probs
-
-# Sort the data frame
-gsdmm_missom_df = gsdmm_missom_df.sort_values(by=['topic', 'topic_probability'], ascending=[False, False])
-
-# Select the 10 most illustrative posts per topic
-topics_to_quote = gsdmm_missom_df.groupby('topic').head(10)
-
-# Save the data frame for easy reading
-topics_to_quote.to_csv("FINISH THIS")
-
-# Percentage of posts with each top 3 topic
-print(post_count_03[29] / len(missom_words_cleaned))
-print(post_count_03[13] / len(missom_words_cleaned))
-print(post_count_03[5] / len(missom_words_cleaned))
 
 #endregion

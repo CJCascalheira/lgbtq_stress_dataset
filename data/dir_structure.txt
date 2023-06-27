@@ -6,6 +6,8 @@ data/
 ........version_2/
 ........features/
 ............liwc_features/
+........private/
+........public/
 ....hatespeech/
 ....pulled_subsets/
 ....raw/
