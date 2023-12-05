@@ -8,6 +8,7 @@ data/cleaned/version_1/**
 data/cleaned/version_2/**
 data/cleaned/features/**
 data/cleaned/private/**
+data/cleaned/public/**
 data/hatespeech/**
 data/pulled_subsets/**
 results/plots/**
