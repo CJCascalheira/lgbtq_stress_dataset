@@ -28,7 +28,9 @@ nltk_stopwords <- read_csv("data/util/NLTK_stopwords.csv")
 stop_words <- stop_words %>%
   select(word) %>%
   bind_rows(nltk_stopwords) %>%
-  distinct(word)
+  distinct(word) %>%
+  # Add words unique to this project
+  bind_rows(data.frame(word = c("quot", "amp")))
 
 # CLEAN THE DATA ----------------------------------------------------------
 

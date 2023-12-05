@@ -1,0 +1,1 @@
+For code used to machine annotate the labels, please visit: https://github.com/chapagaisa/BERT-CNN
